@@ -1,7 +1,7 @@
-package org.example.careercrafter.CareerCrafter.entitiy;
+package org.example.careercrafter.CareerCrafter.entity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.example.careercrafter.CareerCrafter.entitiy.enums.Role;
+import org.example.careercrafter.CareerCrafter.entity.enums.Role;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class User {
+public abstract class UserData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

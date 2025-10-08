@@ -1,4 +1,4 @@
-package org.example.careercrafter.CareerCrafter.entitiy;
+package org.example.careercrafter.CareerCrafter.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 
-public class JobSeeker extends User {
+public class JobSeeker extends UserData {
 
     private String phone;
     private String address;

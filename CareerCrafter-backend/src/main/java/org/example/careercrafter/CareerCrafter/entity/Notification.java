@@ -1,4 +1,4 @@
-package org.example.careercrafter.CareerCrafter.entitiy;
+package org.example.careercrafter.CareerCrafter.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,7 +18,7 @@ public class Notification {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private UserData user;
 
     @Column(columnDefinition = "TEXT")
     private String message;

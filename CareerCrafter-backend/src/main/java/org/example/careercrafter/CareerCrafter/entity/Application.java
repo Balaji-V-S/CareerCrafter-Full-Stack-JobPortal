@@ -1,7 +1,7 @@
-package org.example.careercrafter.CareerCrafter.entitiy;
+package org.example.careercrafter.CareerCrafter.entity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.example.careercrafter.CareerCrafter.entitiy.enums.ApplicationStatus;
+import org.example.careercrafter.CareerCrafter.entity.enums.ApplicationStatus;
 
 import java.time.LocalDateTime;
 

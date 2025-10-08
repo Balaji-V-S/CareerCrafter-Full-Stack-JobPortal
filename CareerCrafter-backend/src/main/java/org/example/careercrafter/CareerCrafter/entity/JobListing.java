@@ -1,6 +1,6 @@
-package org.example.careercrafter.CareerCrafter.entitiy;
+package org.example.careercrafter.CareerCrafter.entity;
 import jakarta.persistence.*;
-import org.example.careercrafter.CareerCrafter.entitiy.enums.EmploymentType;
+import org.example.careercrafter.CareerCrafter.entity.enums.EmploymentType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,5 +47,7 @@ public class JobListing {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+
 }
 
