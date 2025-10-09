@@ -1,5 +1,6 @@
 package com.example.careercrafter.services;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +20,6 @@ public interface IJobPostingService {
     List<JobPosting> searchJobPostings(String title, String location);
 
     void deleteJobPosting(Integer id);
+
+    List<JobPosting> getAllJobPostings();
 }

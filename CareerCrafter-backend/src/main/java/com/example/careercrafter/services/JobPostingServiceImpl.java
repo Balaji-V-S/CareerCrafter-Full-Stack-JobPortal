@@ -144,4 +144,9 @@ public class JobPostingServiceImpl implements IJobPostingService {
     	        .orElseThrow(() -> new ResourceNotFoundException("No job posting found with ID: " + id));
     	    jobPostingRepository.delete(jobPosting);
     }
+
+    @Override
+    public List<JobPosting> getAllJobPostings() {
+        return jobPostingRepository.findAll();
+    }
 }

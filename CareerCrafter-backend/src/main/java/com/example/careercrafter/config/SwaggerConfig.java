@@ -27,7 +27,7 @@ public class SwaggerConfig {
                 // 2. External Documentation (as requested)
                 .externalDocs(new ExternalDocumentation()
                         .description("Project GitHub Repository")
-                        .url("https://github.com/your-repo/careercrafter")
+                        .url("https://github.com/Balaji-V-S/CareerCrafter-Full-Stack-JobPortal")
                 )
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName, new SecurityScheme()

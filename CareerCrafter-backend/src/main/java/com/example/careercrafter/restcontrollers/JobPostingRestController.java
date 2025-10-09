@@ -88,6 +88,30 @@ public class JobPostingRestController {
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('EMPLOYER', 'JOB_SEEKER')")
+    public ResponseEntity<List<JobPostingDTO>> getAllJobPostings() {
+        List<JobPostingDTO> jobPostings = jobPostingService.getAllJobPostings().stream()
+                .map(job -> {
+                    JobPostingDTO dto = new JobPostingDTO();
+                    dto.setId(job.getId());
+                    dto.setEmployerId(job.getEmployerProfile().getId());
+                    dto.setTitle(job.getTitle());
+                    dto.setDescription(job.getJobDescription());
+                    dto.setLocation(job.getLocation());
+                    dto.setJobType(job.getEmploymentType().name());
+                    dto.setSalaryRange(job.getSalary());
+                    dto.setApplicationDeadline(job.getApplicationDeadline());
+                    dto.setQualifications(job.getQualifications());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(jobPostings);
+    }
+
+
+
     @DeleteMapping("/remove/{id}")
     @PreAuthorize("hasRole('EMPLOYER')")
     public ResponseEntity<?> deleteJobPosting(@PathVariable Integer id) {
