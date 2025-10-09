@@ -1,82 +1,46 @@
-import React, { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../../context/AuthContext";
-import { getJobs, deleteJob } from "../../api/jobApi";
-import JobCard from "../../components/JobCard";
-import Sidebar from "../../components/Sidebar";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { fetchUserInfo } from "../../api/userApi";
 
-function JobListings() {
-  const { user } = useContext(AuthContext);
-  const [jobListings, setJobListings] = useState([]);
+const EmployerDashboard = () => {
+  const [employerInfo, setEmployerInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchJobs() {
-      if (!user) return;
+    const loadData = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const { data } = await getJobs({ employerId: user.id }, token);
-        setJobListings(data);
+        const data = await fetchUserInfo();
+        setEmployerInfo(data);
       } catch (error) {
-        console.error("Failed to fetch jobs", error);
+        console.error("Failed to fetch employer info:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }
-    fetchJobs();
-  }, [user]);
+    };
+    loadData();
+  }, []);
 
-  async function handleDelete(id) {
-    if (!window.confirm("Are you sure you want to delete this job?")) return;
-    try {
-      const token = localStorage.getItem("token");
-      await deleteJob(id, token);
-      setJobListings((prev) => prev.filter((job) => job.id !== id));
-    } catch (error) {
-      alert("Failed to delete job");
-    }
+  if (loading) {
+    return <div className="text-center mt-10">Loading...</div>;
+  }
+
+  if (!employerInfo) {
+    return <div className="text-center mt-10">No employer data found.</div>;
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar role="EMPLOYER" />
-      <main className="flex-1 p-6">
-        <h1 className="text-3xl font-bold mb-6">My Job Listings</h1>
-        {loading ? (
-          <p className="text-gray-600">Loading jobs...</p>
-        ) : jobListings.length === 0 ? (
-          <p className="text-gray-700">
-            You have no job listings.{" "}
-            <a href="/employer/postjob" className="text-indigo-600 hover:underline">
-              Post a job
-            </a>.
-          </p>
-        ) : (
-          <ul className="space-y-4">
-            {jobListings.map((job) => (
-              <li key={job.id} className="flex items-center justify-between bg-white p-4 rounded shadow">
-                <JobCard job={job} isEmployer />
-                <div className="flex space-x-4">
-                  <button
-                    onClick={() => navigate(`/employer/viewapplications/${job.id}`)}
-                    className="bg-indigo-600 text-white rounded px-3 py-1 hover:bg-indigo-700"
-                  >
-                    View Applications
-                  </button>
-                  <button
-                    onClick={() => handleDelete(job.id)}
-                    className="bg-red-600 text-white rounded px-3 py-1 hover:bg-red-700"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </main>
+    <div className="p-6">
+      <h1 className="text-3xl font-semibold text-blue-600 mb-4">
+        Welcome, {employerInfo.name}
+      </h1>
+      <p className="text-gray-700 mb-2">
+        Company: {employerInfo.companyName || "Not provided"}
+      </p>
+      <p className="text-gray-700 mb-2">Email: {employerInfo.email}</p>
+      <p className="text-gray-700">
+        You can post and manage job listings from the menu.
+      </p>
     </div>
   );
-}
+};
 
-export default JobListings;
+export default EmployerDashboard;

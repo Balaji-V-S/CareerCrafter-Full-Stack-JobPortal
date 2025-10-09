@@ -1,27 +1,18 @@
 import React from "react";
 
-function SkillChips({ skills = [], onRemove }) {
+const SkillChips = ({ skills = [] }) => {
   return (
     <div className="flex flex-wrap gap-2">
-      {skills.map((skill, idx) => (
+      {skills.map((skill) => (
         <span
-          className="bg-gray-200 rounded-full px-3 py-1 text-xs flex items-center space-x-2"
-          key={idx}
+          key={skill}
+          className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full"
         >
-          <span>{skill}</span>
-          {onRemove && (
-            <button
-              type="button"
-              onClick={() => onRemove(skill)}
-              className="text-gray-600 hover:text-red-600 font-bold focus:outline-none"
-            >
-              ×
-            </button>
-          )}
+          {skill}
         </span>
       ))}
     </div>
   );
-}
+};
 
 export default SkillChips;

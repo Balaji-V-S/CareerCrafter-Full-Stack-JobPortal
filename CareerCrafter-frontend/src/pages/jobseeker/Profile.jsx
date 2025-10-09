@@ -1,222 +1,139 @@
-import React, { useState, useContext, useEffect } from "react";
-import { getProfile, updateProfile, uploadResume } from "../../api/userApi";
-import { AuthContext } from "../../context/AuthContext";
-import Sidebar from "../../components/Sidebar";
-import FileUpload from "../../components/FileUpload";
-import SkillChips from "../../components/SkillChips";
+import React, { useState, useEffect } from "react";
+import { getJobSeekerProfile, updateJobSeekerProfile } from "../../api/jobSeekerApi";
 
-function Profile() {
-  const { user, updateUser } = useContext(AuthContext);
-
-  const [form, setForm] = useState({
+const Profile = () => {
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
-    address: "",
-    skills: [],
     education: "",
     workExperience: "",
-    coCurricularDetails: "",
+    skills: "",
   });
-
-  const [resumeFile, setResumeFile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    async function loadProfile() {
+    const loadProfile = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const { data } = await getProfile(token);
-        setForm({
+        const data = await getJobSeekerProfile();
+        setFormData({
           name: data.name,
           email: data.email,
-          phone: data.phone || "",
-          address: data.address || "",
-          skills: data.skills || [],
           education: data.education || "",
           workExperience: data.workExperience || "",
-          coCurricularDetails: data.coCurricularDetails || "",
+          skills: (data.skills || []).join(", "),
         });
-      } catch (err) {
-        setError("Failed to load profile");
+      } catch {
+        setError("Failed to load profile.");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }
+    };
     loadProfile();
   }, []);
 
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }
+  const handleChange = (e) => {
+    setFormData({...formData, [e.target.name]: e.target.value});
+  };
 
-  function addSkill(skill) {
-    if (skill && !form.skills.includes(skill)) {
-      setForm({ ...form, skills: [...form.skills, skill] });
-    }
-  }
-
-  function removeSkill(skill) {
-    setForm({ ...form, skills: form.skills.filter((s) => s !== skill) });
-  }
-
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    try {
-      const token = localStorage.getItem("token");
-      await updateProfile(form, token);
-      alert("Profile updated successfully");
-      updateUser({ ...user, ...form }); // update context
-    } catch {
-      setError("Failed to update profile");
-    }
-  }
+    setSaving(true);
+    setError(null);
+    setSuccess(false);
 
-  async function handleResumeUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    setError("");
-    try {
-      const token = localStorage.getItem("token");
-      await uploadResume(file, token);
-      alert("Resume uploaded successfully");
-    } catch {
-      setError("Failed to upload resume");
-    }
-    setUploading(false);
-  }
+    const skillsArray = formData.skills.split(",").map((skill) => skill.trim()).filter(Boolean);
 
-  if (loading)
-    return (
-      <p className="text-center text-gray-600 mt-16">Loading profile...</p>
-    );
+    try {
+      await updateJobSeekerProfile({...formData, skills: skillsArray});
+      setSuccess(true);
+    } catch {
+      setError("Failed to save profile.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div className="text-center mt-10">Loading profile...</div>;
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar role="JOB_SEEKER" />
-      <main className="flex-1 p-6 max-w-3xl mx-auto bg-white rounded shadow">
-        <h1 className="text-3xl font-bold mb-6">My Profile</h1>
-        <form onSubmit={handleSubmit} noValidate className="space-y-6">
-          <label className="block">
-            <span className="text-gray-700 font-semibold">Name</span>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
-            />
-          </label>
+    <div className="p-6 max-w-xl mx-auto">
+      <h1 className="text-3xl font-semibold text-blue-600 mb-6">My Profile</h1>
 
-          <label className="block">
-            <span className="text-gray-700 font-semibold">Email (readonly)</span>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              readOnly
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 cursor-not-allowed"
-            />
-          </label>
+      {error && <p className="mb-4 text-red-600">{error}</p>}
+      {success && <p className="mb-4 text-green-600">Profile saved successfully.</p>}
 
-          <label className="block">
-            <span className="text-gray-700 font-semibold">Phone</span>
-            <input
-              type="tel"
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-gray-700 font-semibold">Address</span>
-            <input
-              type="text"
-              name="address"
-              value={form.address}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-gray-700 font-semibold">Skills</span>
-            <input
-              type="text"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addSkill(e.target.value.trim());
-                  e.target.value = "";
-                }
-              }}
-              placeholder="Type a skill and press Enter"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
-            />
-            <SkillChips skills={form.skills} onRemove={removeSkill} />
-          </label>
-
-          <label className="block">
-            <span className="text-gray-700 font-semibold">Education</span>
-            <textarea
-              name="education"
-              value={form.education}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
-              rows={3}
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-gray-700 font-semibold">Work Experience</span>
-            <textarea
-              name="workExperience"
-              value={form.workExperience}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
-              rows={3}
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-gray-700 font-semibold">Co-Curricular Details</span>
-            <textarea
-              name="coCurricularDetails"
-              value={form.coCurricularDetails}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
-              rows={3}
-            />
-          </label>
-
-          <FileUpload
-            label="Upload Resume (PDF, DOC)"
-            onChange={handleResumeUpload}
-            accept=".pdf,.doc,.docx"
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block font-semibold mb-1">Name</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+        </div>
 
-          {uploading && (
-            <p className="text-indigo-600 font-semibold">Uploading resume...</p>
-          )}
+        <div>
+          <label className="block font-semibold mb-1">Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled
+          />
+        </div>
 
-          {error && <p className="text-red-600 mt-2">{error}</p>}
+        <div>
+          <label className="block font-semibold mb-1">Education</label>
+          <textarea
+            name="education"
+            value={formData.education}
+            onChange={handleChange}
+            rows={3}
+            className="w-full border border-gray-300 rounded px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
-          >
-            Update Profile
-          </button>
-        </form>
-      </main>
+        <div>
+          <label className="block font-semibold mb-1">Work Experience</label>
+          <textarea
+            name="workExperience"
+            value={formData.workExperience}
+            onChange={handleChange}
+            rows={3}
+            className="w-full border border-gray-300 rounded px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block font-semibold mb-1">Skills (comma separated)</label>
+          <input
+            type="text"
+            name="skills"
+            value={formData.skills}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded transition disabled:opacity-50"
+        >
+          {saving ? "Saving..." : "Save Profile"}
+        </button>
+      </form>
     </div>
   );
-}
+};
 
 export default Profile;

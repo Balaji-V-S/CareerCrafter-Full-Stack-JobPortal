@@ -1,19 +1,22 @@
 import React from "react";
 
-function FileUpload({ label, onChange, accept = "*" }) {
+const FileUpload = ({ label, onFileSelect }) => {
+  const handleFileChange = (e) => {
+    if (e.target.files.length > 0) {
+      onFileSelect(e.target.files[0]);
+    }
+  };
+
   return (
-    <div className="my-4">
-      <label className="block text-gray-700 font-medium mb-2">
-        {label}
-        <input
-          type="file"
-          accept={accept}
-          onChange={onChange}
-          className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200"
-        />
-      </label>
+    <div className="flex flex-col">
+      <label className="mb-2 font-semibold text-gray-700">{label}</label>
+      <input
+        type="file"
+        onChange={handleFileChange}
+        className="block w-full text-gray-700 border border-gray-300 rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
     </div>
   );
-}
+};
 
 export default FileUpload;

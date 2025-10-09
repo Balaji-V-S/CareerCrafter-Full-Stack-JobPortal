@@ -1,16 +1,8 @@
-import axios from 'axios';
-import { API_BASE_URL } from '../utils/constants';
+// src/api/notificationApi.js
+import axiosInstance from "./axiosInstance";
 
-// Get notifications for the user
-export async function getNotifications(token) {
-  return axios.get(`${API_BASE_URL}/notifications`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-}
-
-// Mark notification as read
-export async function markNotificationRead(notificationId, token) {
-  return axios.put(`${API_BASE_URL}/notifications/${notificationId}/read`, {}, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-}
+// Placeholder for notification related calls
+export const fetchNotifications = async () => {
+  const response = await axiosInstance.get("/notifications");
+  return response.data;
+};

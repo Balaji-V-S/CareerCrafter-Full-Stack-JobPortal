@@ -1,33 +1,20 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-function JobCard({ job, isEmployer }) {
+const JobCard = ({ job }) => {
   return (
-    <div className="border border-gray-300 rounded p-4 mb-4 shadow hover:shadow-md transition">
-      <h3 className="text-xl font-semibold mb-1">{job.title}</h3>
-      <p className="text-gray-600 mb-1">{job.companyName || job.employer?.companyName}</p>
-      <p className="text-gray-700 mb-2">
-        {job.location} | {job.employmentType.replaceAll("_", " ")}
-      </p>
-      <div className="mb-2">
-        {job.skillsRequired?.map((skill, idx) => (
-          <span
-            key={idx}
-            className="inline-block bg-gray-200 rounded-full px-3 py-1 text-xs mr-2 mb-2"
-          >
-            {skill}
-          </span>
-        ))}
-      </div>
-      <p className="font-medium mb-2">Salary: ₹{job.salary}</p>
+    <div className="border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition mb-4">
+      <h3 className="text-lg font-semibold text-blue-600">{job.title}</h3>
+      <p className="text-sm text-gray-600 mb-2">{job.companyName}</p>
+      <p className="text-gray-700 mb-4">{job.description.substring(0, 150)}...</p>
       <Link
-        to={isEmployer ? `/employer/joblistings/${job.id}` : `/jobseeker/jobs/${job.id}`}
-        className="text-indigo-600 hover:underline font-semibold"
+        to={`/job-details/${job.id}`}
+        className="text-blue-600 hover:underline font-semibold"
       >
-        View
+        View Details
       </Link>
     </div>
   );
-}
+};
 
 export default JobCard;

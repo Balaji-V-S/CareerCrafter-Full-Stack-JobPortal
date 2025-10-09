@@ -1,0 +1,2271 @@
+
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\vite.config.js =====
+
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [
+    react({
+      babel: {
+        plugins: [['babel-plugin-react-compiler']],
+      },
+    }),
+    tailwindcss(),
+  ],
+})
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\App.css =====
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\App.jsx =====
+
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+// Import all pages and contexts
+import { AuthProvider } from "./context/AuthContext";
+import { NotificationProvider } from "./context/NotificationContext";
+
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
+
+import EmployerDashboard from "./pages/employer/EmployerDashboard";
+import PostJob from "./pages/employer/PostJob";
+import JobListings from "./pages/employer/JobListings";
+import ViewApplications from "./pages/employer/ViewApplications";
+
+import JobSeekerDashboard from "./pages/jobseeker/JobSeekerDashboard";
+import Applications from "./pages/jobseeker/Applications";
+import Profile from "./pages/jobseeker/Profile";
+import JobDetails from "./pages/jobseeker/JobDetails";
+
+import NotFound from "./pages/common/NotFound";
+import Unauthorized from "./pages/common/Unauthorized";
+
+import ProtectedRoute from "./routes/ProtectedRoute";
+
+function App() {
+  return (
+    <AuthProvider>
+      <NotificationProvider>
+        <Router>
+          <div className="app-container min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-grow bg-gray-50 p-4">
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<LoginPage />} />
+                <Route path="/auth/login" element={<LoginPage />} />
+                <Route path="/auth/register" element={<RegisterPage />} />
+                <Route path="/unauthorized" element={<Unauthorized />} />
+
+                {/* Employer protected routes */}
+                <Route element={<ProtectedRoute allowedRoles={["EMPLOYER"]} />}>
+                  <Route path="/employer/dashboard" element={<EmployerDashboard />} />
+                  <Route path="/employer/postjob" element={<PostJob />} />
+                  <Route path="/employer/joblistings" element={<JobListings />} />
+                  <Route path="/employer/viewapplications/:jobId" element={<ViewApplications />} />
+                </Route>
+
+                {/* Job Seeker protected routes */}
+                <Route element={<ProtectedRoute allowedRoles={["JOB_SEEKER"]} />}>
+                  <Route path="/jobseeker/dashboard" element={<JobSeekerDashboard />} />
+                  <Route path="/jobseeker/applications" element={<Applications />} />
+                  <Route path="/jobseeker/profile" element={<Profile />} />
+                  <Route path="/jobseeker/jobs/:id" element={<JobDetails />} />
+                </Route>
+
+                {/* Catch all */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </Router>
+      </NotificationProvider>
+    </AuthProvider>
+  );
+}
+
+export default App;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\index.css =====
+
+@import 'tailwindcss'
+
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\main.jsx =====
+
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import "./index.css"; // Tailwind CSS and custom styles
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\api\applicationApi.js =====
+
+import axios from 'axios';
+import { API_BASE_URL } from '../utils/constants';
+
+// Job seeker applies for a job
+export async function applyToJob(jobId, payload, token) {
+  return axios.post(`${API_BASE_URL}/applications/${jobId}/apply`, payload, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+// Job seeker gets their applications
+export async function getMyApplications(token) {
+  return axios.get(`${API_BASE_URL}/applications/me`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+// Employer gets applications for a job
+export async function getJobApplications(jobId, token) {
+  return axios.get(`${API_BASE_URL}/applications/job/${jobId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+// Employer updates application status
+export async function updateApplicationStatus(applicationId, payload, token) {
+  return axios.put(`${API_BASE_URL}/applications/${applicationId}/status`, payload, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\api\authApi.js =====
+
+import axios from 'axios';
+import { API_BASE_URL } from '../utils/constants';
+
+// Register new user (job seeker or employer)
+export async function register(payload) {
+  return axios.post(`${API_BASE_URL}/auth/register`, payload);
+}
+
+// Login user
+export async function login(payload) {
+  return axios.post(`${API_BASE_URL}/auth/login`, payload);
+}
+
+// Change password
+export async function changePassword(token, payload) {
+  return axios.post(`${API_BASE_URL}/auth/change-password`, payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+// Logout (optional: invalidate token server-side)
+export async function logout(token) {
+  return axios.post(`${API_BASE_URL}/auth/logout`, {}, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\api\jobApi.js =====
+
+import axios from 'axios';
+import { API_BASE_URL } from '../utils/constants';
+
+// Get all job listings with optional filters
+export async function getJobs(filters = {}, token) {
+  return axios.get(`${API_BASE_URL}/jobs`, {
+    params: filters,
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+// Get single job listing by ID
+export async function getJobDetails(id, token) {
+  return axios.get(`${API_BASE_URL}/jobs/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+// Create new job (employer only)
+export async function createJob(payload, token) {
+  return axios.post(`${API_BASE_URL}/jobs`, payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+// Update job (employer only)
+export async function updateJob(id, payload, token) {
+  return axios.put(`${API_BASE_URL}/jobs/${id}`, payload, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+// Delete job
+export async function deleteJob(id, token) {
+  return axios.delete(`${API_BASE_URL}/jobs/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\api\notificationApi.js =====
+
+import axios from 'axios';
+import { API_BASE_URL } from '../utils/constants';
+
+// Get notifications for the user
+export async function getNotifications(token) {
+  return axios.get(`${API_BASE_URL}/notifications`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+// Mark notification as read
+export async function markNotificationRead(notificationId, token) {
+  return axios.put(`${API_BASE_URL}/notifications/${notificationId}/read`, {}, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\api\userApi.js =====
+
+import axios from 'axios';
+import { API_BASE_URL } from '../utils/constants';
+
+// Get current user profile
+export async function getProfile(token) {
+  return axios.get(`${API_BASE_URL}/users/me`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+// Update user profile
+export async function updateProfile(payload, token) {
+  return axios.put(`${API_BASE_URL}/users/me`, payload, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+// Upload resume/documents (multipart/form-data)
+export async function uploadResume(file, token) {
+  const formData = new FormData();
+  formData.append('resume', file);
+  return axios.post(`${API_BASE_URL}/users/me/resume`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+}
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\components\ApplicationTable.jsx =====
+
+import React from "react";
+import { APPLICATION_STATUSES } from "../utils/constants";
+
+function ApplicationTable({ applications, isEmployer, onStatusUpdate }) {
+  return (
+    <table className="min-w-full border border-gray-300 border-collapse">
+      <thead className="bg-gray-100">
+        <tr>
+          <th className="border border-gray-300 p-2 text-left">Job Title</th>
+          {isEmployer && (
+            <th className="border border-gray-300 p-2 text-left">Candidate</th>
+          )}
+          <th className="border border-gray-300 p-2 text-left">Status</th>
+          <th className="border border-gray-300 p-2 text-left">Applied At</th>
+          {isEmployer && (
+            <th className="border border-gray-300 p-2 text-left">Actions</th>
+          )}
+        </tr>
+      </thead>
+      <tbody>
+        {applications.map((app) => (
+          <tr key={app.id} className="hover:bg-gray-50">
+            <td className="border border-gray-300 p-2">{app.jobListing?.title}</td>
+            {isEmployer && (
+              <td className="border border-gray-300 p-2">
+                {app.jobSeeker?.name} ({app.jobSeeker?.email})
+              </td>
+            )}
+            <td className="border border-gray-300 p-2">{app.status}</td>
+            <td className="border border-gray-300 p-2">
+              {new Date(app.appliedAt).toLocaleString()}
+            </td>
+            {isEmployer && (
+              <td className="border border-gray-300 p-2">
+                <select
+                  value={app.status}
+                  onChange={(e) => onStatusUpdate(app.id, e.target.value)}
+                  className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                >
+                  {APPLICATION_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </td>
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+export default ApplicationTable;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\components\FileUpload.jsx =====
+
+import React from "react";
+
+function FileUpload({ label, onChange, accept = "*" }) {
+  return (
+    <div className="my-4">
+      <label className="block text-gray-700 font-medium mb-2">
+        {label}
+        <input
+          type="file"
+          accept={accept}
+          onChange={onChange}
+          className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200"
+        />
+      </label>
+    </div>
+  );
+}
+
+export default FileUpload;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\components\Footer.jsx =====
+
+import React from "react";
+
+function Footer() {
+  return (
+    <footer className="bg-gray-100 text-center p-4 text-gray-600 text-sm mt-auto">
+      <span>© {new Date().getFullYear()} CareerCrafter. All rights reserved.</span>
+    </footer>
+  );
+}
+
+export default Footer;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\components\Header.jsx =====
+
+import React, { useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import NotificationDropdown from "./NotificationDropdown";
+import { ROLES } from "../utils/constants";
+import logo from "../assets/logo.jpg"; // Adjust path as needed
+
+function Header() {
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    logout();
+    navigate("/auth/login");
+  }
+
+  return (
+    <header className="flex items-center justify-between p-4 bg-white shadow sticky top-0 z-50">
+      <img src={logo} alt="CareerCrafter" className="h-8" />
+      <nav className="flex space-x-4 text-gray-700">
+        <Link to="/" className="hover:text-indigo-600">
+          Home
+        </Link>
+        {user?.role === ROLES.EMPLOYER && (
+          <>
+            <Link to="/employer/dashboard" className="hover:text-indigo-600">
+              Dashboard
+            </Link>
+            <Link to="/employer/joblistings" className="hover:text-indigo-600">
+              My Jobs
+            </Link>
+            <Link to="/employer/postjob" className="hover:text-indigo-600">
+              Post Job
+            </Link>
+          </>
+        )}
+        {user?.role === ROLES.JOB_SEEKER && (
+          <>
+            <Link to="/jobseeker/dashboard" className="hover:text-indigo-600">
+              Dashboard
+            </Link>
+            <Link to="/jobseeker/applications" className="hover:text-indigo-600">
+              My Applications
+            </Link>
+          </>
+        )}
+      </nav>
+      <div className="flex items-center space-x-4">
+        {user && <NotificationDropdown />}
+        {user ? (
+          <button
+            onClick={handleLogout}
+            className="bg-indigo-600 text-white px-4 py-1 rounded hover:bg-indigo-700"
+          >
+            Logout
+          </button>
+        ) : (
+          <Link
+            to="/auth/login"
+            className="text-indigo-600 hover:underline font-semibold"
+          >
+            Login
+          </Link>
+        )}
+      </div>
+    </header>
+  );
+}
+
+export default Header;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\components\JobCard.jsx =====
+
+import React from "react";
+import { Link } from "react-router-dom";
+
+function JobCard({ job, isEmployer }) {
+  return (
+    <div className="border border-gray-300 rounded p-4 mb-4 shadow hover:shadow-md transition">
+      <h3 className="text-xl font-semibold mb-1">{job.title}</h3>
+      <p className="text-gray-600 mb-1">{job.companyName || job.employer?.companyName}</p>
+      <p className="text-gray-700 mb-2">
+        {job.location} | {job.employmentType.replaceAll("_", " ")}
+      </p>
+      <div className="mb-2">
+        {job.skillsRequired?.map((skill, idx) => (
+          <span
+            key={idx}
+            className="inline-block bg-gray-200 rounded-full px-3 py-1 text-xs mr-2 mb-2"
+          >
+            {skill}
+          </span>
+        ))}
+      </div>
+      <p className="font-medium mb-2">Salary: ₹{job.salary}</p>
+      <Link
+        to={isEmployer ? `/employer/joblistings/${job.id}` : `/jobseeker/jobs/${job.id}`}
+        className="text-indigo-600 hover:underline font-semibold"
+      >
+        View
+      </Link>
+    </div>
+  );
+}
+
+export default JobCard;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\components\NotificationDropdown.jsx =====
+
+import React, { useContext } from "react";
+import { NotificationContext } from "../context/NotificationContext";
+
+function NotificationDropdown() {
+  const { notifications, markAsRead } = useContext(NotificationContext);
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  return (
+    <div className="relative cursor-pointer">
+      <span className="text-2xl select-none">🔔</span>
+      {unreadCount > 0 && (
+        <span className="absolute -top-1 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+          {unreadCount}
+        </span>
+      )}
+      <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded shadow-lg max-h-64 overflow-auto z-50">
+        {notifications.length === 0 ? (
+          <div className="p-4 text-center text-gray-500">No notifications</div>
+        ) : (
+          notifications.map((n) => (
+            <div
+              key={n.id}
+              onClick={() => markAsRead(n.id)}
+              className={`p-2 border-b border-gray-200 flex justify-between cursor-pointer ${
+                n.isRead ? "bg-white" : "bg-indigo-100 font-semibold"
+              } hover:bg-indigo-200`}
+            >
+              <span>{n.message}</span>
+              <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
+                {new Date(n.createdAt).toLocaleString()}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default NotificationDropdown;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\components\Sidebar.jsx =====
+
+import React from "react";
+import { Link } from "react-router-dom";
+
+function Sidebar({ role }) {
+  return (
+    <aside className="w-48 bg-white p-4 border-r border-gray-200 h-screen sticky top-0 flex flex-col space-y-3">
+      {role === "EMPLOYER" ? (
+        <>
+          <Link
+            to="/employer/dashboard"
+            className="block py-2 px-3 rounded hover:bg-indigo-600 hover:text-white transition"
+          >
+            Dashboard
+          </Link>
+          <Link
+            to="/employer/joblistings"
+            className="block py-2 px-3 rounded hover:bg-indigo-600 hover:text-white transition"
+          >
+            Jobs
+          </Link>
+          <Link
+            to="/employer/postjob"
+            className="block py-2 px-3 rounded hover:bg-indigo-600 hover:text-white transition"
+          >
+            Post Job
+          </Link>
+        </>
+      ) : (
+        <>
+          <Link
+            to="/jobseeker/dashboard"
+            className="block py-2 px-3 rounded hover:bg-indigo-600 hover:text-white transition"
+          >
+            Dashboard
+          </Link>
+          <Link
+            to="/jobseeker/applications"
+            className="block py-2 px-3 rounded hover:bg-indigo-600 hover:text-white transition"
+          >
+            Applications
+          </Link>
+          <Link
+            to="/jobseeker/profile"
+            className="block py-2 px-3 rounded hover:bg-indigo-600 hover:text-white transition"
+          >
+            Profile
+          </Link>
+        </>
+      )}
+    </aside>
+  );
+}
+
+export default Sidebar;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\components\SkillChips.jsx =====
+
+import React from "react";
+
+function SkillChips({ skills = [], onRemove }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {skills.map((skill, idx) => (
+        <span
+          className="bg-gray-200 rounded-full px-3 py-1 text-xs flex items-center space-x-2"
+          key={idx}
+        >
+          <span>{skill}</span>
+          {onRemove && (
+            <button
+              type="button"
+              onClick={() => onRemove(skill)}
+              className="text-gray-600 hover:text-red-600 font-bold focus:outline-none"
+            >
+              ×
+            </button>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+export default SkillChips;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\context\AuthContext.jsx =====
+
+import React, { createContext, useState, useEffect } from "react";
+
+export const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  // Mock user object for frontend testing
+  const [user, setUser] = useState({
+    id: 1,
+    name: "Test User",
+    role: "JOB_SEEKER", // Change to "JOB_SEEKER" to test that role
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  // Remove backend API calls and token handling for now.
+  // You can optionally keep loading state for async simulation.
+
+  // Mock login function (always succeeds)
+  async function login(credentials) {
+    setUser({
+      id: 1,
+      name: "Test User",
+      role: credentials.role || "EMPLOYER",
+    });
+    return true;
+  }
+
+  // Mock logout function (clears user)
+  async function logout() {
+    setUser(null);
+  }
+
+  // Update user locally
+  function updateUser(updatedUser) {
+    setUser(updatedUser);
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\context\NotificationContext.jsx =====
+
+import React, { createContext, useState, useEffect, useContext } from "react";
+import { getNotifications, markNotificationRead } from "../api/notificationApi";
+import { AuthContext } from "./AuthContext";
+
+export const NotificationContext = createContext();
+
+export const NotificationProvider = ({ children }) => {
+  const { user } = useContext(AuthContext);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setNotifications([]);
+      setLoading(false);
+      return;
+    }
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const { data } = await getNotifications(token);
+        setNotifications(data);
+      } catch (error) {
+        console.error("NotificationContext: Failed to load notifications", error);
+      }
+      setLoading(false);
+    };
+    fetchNotifications();
+  }, [user]);
+
+  // Mark notification read and update state optimistically
+  async function markAsRead(notificationId) {
+    try {
+      const token = localStorage.getItem("token");
+      await markNotificationRead(notificationId, token);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n))
+      );
+    } catch (error) {
+      console.error("Failed to mark notification read", error);
+    }
+  }
+
+  return (
+    <NotificationContext.Provider value={{ notifications, loading, markAsRead }}>
+      {children}
+    </NotificationContext.Provider>
+  );
+};
+
+
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\pages\auth\LoginPage.jsx =====
+
+import React, { useState, useContext } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
+
+function LoginPage() {
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("JOB_SEEKER");
+  const [error, setError] = useState("");
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    const success = await login({ email, password, role });
+    if (success) {
+      navigate(role === "EMPLOYER" ? "/employer/dashboard" : "/jobseeker/dashboard");
+    } else {
+      setError("Login failed. Please check your credentials.");
+    }
+  }
+
+  return (
+    <section className="max-w-md mx-auto mt-12 p-6 bg-white rounded shadow">
+      <h2 className="text-2xl font-semibold mb-6 text-center">Login</h2>
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        <label className="block">
+          <span className="text-gray-700">Email</span>
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+          />
+        </label>
+        <label className="block">
+          <span className="text-gray-700">Password</span>
+          <input
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+          />
+        </label>
+        <label className="block">
+          <span className="text-gray-700">Role</span>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+          >
+            <option value="JOB_SEEKER">Job Seeker</option>
+            <option value="EMPLOYER">Employer</option>
+          </select>
+        </label>
+        {error && <p className="text-red-600 mt-1 text-sm">{error}</p>}
+        <button
+          type="submit"
+          className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
+        >
+          Login
+        </button>
+      </form>
+      <p className="mt-4 text-center text-gray-600">
+        Don't have an account?{" "}
+        <Link to="/auth/register" className="text-indigo-600 hover:underline">
+          Register here
+        </Link>
+      </p>
+    </section>
+  );
+}
+
+export default LoginPage;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\pages\auth\RegisterPage.jsx =====
+
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { register } from "../../api/authApi";
+
+function RegisterPage() {
+  const navigate = useNavigate();
+
+  const [role, setRole] = useState("JOB_SEEKER");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    companyName: "",
+    companyDesc: "",
+    website: "",
+    phone: "",
+    address: "",
+  });
+  const [error, setError] = useState("");
+
+  function handleChange(e) {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    const payload = {
+      role,
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      ...(role === "EMPLOYER"
+        ? {
+            companyName: form.companyName,
+            companyDesc: form.companyDesc,
+            website: form.website,
+          }
+        : {
+            phone: form.phone,
+            address: form.address,
+          }),
+    };
+
+    try {
+      await register(payload);
+      alert("Registration successful! Please login.");
+      navigate("/auth/login");
+    } catch (err) {
+      setError(err.response?.data?.message || "Registration failed");
+    }
+  }
+
+  return (
+    <section className="max-w-md mx-auto mt-12 p-6 bg-white rounded shadow">
+      <h2 className="text-2xl font-semibold mb-6 text-center">Register</h2>
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        <label className="block">
+          <span className="text-gray-700">Role</span>
+          <select
+            name="role"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+          >
+            <option value="JOB_SEEKER">Job Seeker</option>
+            <option value="EMPLOYER">Employer</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="text-gray-700">Name</span>
+          <input
+            name="name"
+            type="text"
+            value={form.name}
+            onChange={handleChange}
+            required
+            placeholder="Your full name"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+          />
+        </label>
+        <label className="block">
+          <span className="text-gray-700">Email</span>
+          <input
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            placeholder="Your email address"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+          />
+        </label>
+        <label className="block">
+          <span className="text-gray-700">Password</span>
+          <input
+            name="password"
+            type="password"
+            value={form.password}
+            onChange={handleChange}
+            required
+            placeholder="Create a password"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+          />
+        </label>
+        <label className="block">
+          <span className="text-gray-700">Confirm Password</span>
+          <input
+            name="confirmPassword"
+            type="password"
+            value={form.confirmPassword}
+            onChange={handleChange}
+            required
+            placeholder="Confirm your password"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+          />
+        </label>
+
+        {role === "EMPLOYER" && (
+          <>
+            <label className="block">
+              <span className="text-gray-700">Company Name</span>
+              <input
+                name="companyName"
+                type="text"
+                value={form.companyName}
+                onChange={handleChange}
+                placeholder="Company Name"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              />
+            </label>
+            <label className="block">
+              <span className="text-gray-700">Company Description</span>
+              <textarea
+                name="companyDesc"
+                value={form.companyDesc}
+                onChange={handleChange}
+                placeholder="Brief description"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              />
+            </label>
+            <label className="block">
+              <span className="text-gray-700">Website</span>
+              <input
+                name="website"
+                type="url"
+                value={form.website}
+                onChange={handleChange}
+                placeholder="https://example.com"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              />
+            </label>
+          </>
+        )}
+
+        {role === "JOB_SEEKER" && (
+          <>
+            <label className="block">
+              <span className="text-gray-700">Phone</span>
+              <input
+                name="phone"
+                type="tel"
+                value={form.phone}
+                onChange={handleChange}
+                placeholder="Phone number"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              />
+            </label>
+            <label className="block">
+              <span className="text-gray-700">Address</span>
+              <input
+                name="address"
+                type="text"
+                value={form.address}
+                onChange={handleChange}
+                placeholder="Your address"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              />
+            </label>
+          </>
+        )}
+        {error && <p className="text-red-600 mt-1 text-sm">{error}</p>}
+        <button
+          type="submit"
+          className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
+        >
+          Register
+        </button>
+      </form>
+      <p className="mt-4 text-center text-gray-600">
+        Already have an account?{" "}
+        <Link to="/auth/login" className="text-indigo-600 hover:underline">
+          Login here
+        </Link>
+      </p>
+    </section>
+  );
+}
+
+export default RegisterPage;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\pages\common\NotFound.jsx =====
+
+import React from "react";
+import { Link } from "react-router-dom";
+
+function NotFound() {
+  return (
+    <section className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50 text-center">
+      <h2 className="text-4xl font-bold mb-4 text-gray-800">404 - Page Not Found</h2>
+      <p className="text-gray-600 mb-6">The page you are looking for does not exist.</p>
+      <Link
+        to="/"
+        className="inline-block bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition"
+      >
+        Go to Home
+      </Link>
+    </section>
+  );
+}
+
+export default NotFound;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\pages\common\Unauthorized.jsx =====
+
+import React from "react";
+import { Link } from "react-router-dom";
+
+function Unauthorized() {
+  return (
+    <section className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50 text-center">
+      <h2 className="text-4xl font-bold mb-4 text-red-600">Unauthorized Access</h2>
+      <p className="text-gray-600 mb-6">You do not have permission to view this page.</p>
+      <Link
+        to="/"
+        className="inline-block bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition"
+      >
+        Go to Home
+      </Link>
+    </section>
+  );
+}
+
+export default Unauthorized;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\pages\employer\EmployerDashboard.jsx =====
+
+import React, { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import { getJobs } from "../../api/jobApi";
+import JobCard from "../../components/JobCard";
+import Sidebar from "../../components/Sidebar";
+
+function EmployerDashboard() {
+  const { user } = useContext(AuthContext);
+  const [jobListings, setJobListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchJobs() {
+      if (!user) return;
+      try {
+        const token = localStorage.getItem("token");
+        const { data } = await getJobs({ employerId: user.id }, token);
+        setJobListings(data);
+      } catch (error) {
+        console.error("Failed to fetch employer jobs", error);
+      }
+      setLoading(false);
+    }
+    fetchJobs();
+  }, [user]);
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar role="EMPLOYER" />
+      <main className="flex-1 p-6">
+        <h1 className="text-3xl font-bold mb-6">Employer Dashboard</h1>
+        {loading ? (
+          <p className="text-gray-600">Loading your job listings...</p>
+        ) : jobListings.length === 0 ? (
+          <p className="text-gray-700">
+            You have not posted any jobs yet.{" "}
+            <a href="/employer/postjob" className="text-indigo-600 hover:underline">
+              Post your first job
+            </a>.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {jobListings.map((job) => (
+              <JobCard key={job.id} job={job} isEmployer />
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default EmployerDashboard;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\pages\employer\JobListings.jsx =====
+
+import React, { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import { getJobs, deleteJob } from "../../api/jobApi";
+import JobCard from "../../components/JobCard";
+import Sidebar from "../../components/Sidebar";
+import { useNavigate } from "react-router-dom";
+
+function JobListings() {
+  const { user } = useContext(AuthContext);
+  const [jobListings, setJobListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    async function fetchJobs() {
+      if (!user) return;
+      try {
+        const token = localStorage.getItem("token");
+        const { data } = await getJobs({ employerId: user.id }, token);
+        setJobListings(data);
+      } catch (error) {
+        console.error("Failed to fetch jobs", error);
+      }
+      setLoading(false);
+    }
+    fetchJobs();
+  }, [user]);
+
+  async function handleDelete(id) {
+    if (!window.confirm("Are you sure you want to delete this job?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      await deleteJob(id, token);
+      setJobListings((prev) => prev.filter((job) => job.id !== id));
+    } catch (error) {
+      alert("Failed to delete job");
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar role="EMPLOYER" />
+      <main className="flex-1 p-6">
+        <h1 className="text-3xl font-bold mb-6">My Job Listings</h1>
+        {loading ? (
+          <p className="text-gray-600">Loading jobs...</p>
+        ) : jobListings.length === 0 ? (
+          <p className="text-gray-700">
+            You have no job listings.{" "}
+            <a href="/employer/postjob" className="text-indigo-600 hover:underline">
+              Post a job
+            </a>.
+          </p>
+        ) : (
+          <ul className="space-y-4">
+            {jobListings.map((job) => (
+              <li key={job.id} className="flex items-center justify-between bg-white p-4 rounded shadow">
+                <JobCard job={job} isEmployer />
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => navigate(`/employer/viewapplications/${job.id}`)}
+                    className="bg-indigo-600 text-white rounded px-3 py-1 hover:bg-indigo-700"
+                  >
+                    View Applications
+                  </button>
+                  <button
+                    onClick={() => handleDelete(job.id)}
+                    className="bg-red-600 text-white rounded px-3 py-1 hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default JobListings;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\pages\employer\PostJob.jsx =====
+
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { createJob } from "../../api/jobApi";
+import { AuthContext } from "../../context/AuthContext";
+import { EMPLOYMENT_TYPES } from "../../utils/constants";
+import Sidebar from "../../components/Sidebar";
+import SkillChips from "../../components/SkillChips";
+
+function PostJob() {
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    location: "",
+    employmentType: EMPLOYMENT_TYPES[0],
+    salary: "",
+    industry: "",
+    skillsRequired: [],
+  });
+
+  const [skillInput, setSkillInput] = useState("");
+  const [error, setError] = useState("");
+
+  function handleChange(e) {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  }
+
+  function addSkill() {
+    const skill = skillInput.trim();
+    if (skill && !form.skillsRequired.includes(skill)) {
+      setForm({ ...form, skillsRequired: [...form.skillsRequired, skill] });
+      setSkillInput("");
+    }
+  }
+
+  function removeSkill(skill) {
+    setForm({
+      ...form,
+      skillsRequired: form.skillsRequired.filter((s) => s !== skill),
+    });
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    if (!form.title || !form.description || !form.location) {
+      setError("Please fill in all mandatory fields.");
+      return;
+    }
+    try {
+      const token = localStorage.getItem("token");
+      const payload = {
+        ...form,
+        salary: Number(form.salary),
+        employerId: user.id,
+      };
+      await createJob(payload, token);
+      alert("Job posted successfully");
+      navigate("/employer/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to post job");
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar role="EMPLOYER" />
+      <main className="flex-1 p-6 max-w-3xl mx-auto bg-white rounded shadow">
+        <h1 className="text-3xl font-bold mb-6">Post a New Job</h1>
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Job Title *</span>
+            <input
+              type="text"
+              name="title"
+              value={form.title}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Description *</span>
+            <textarea
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              required
+              rows={4}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Location *</span>
+            <input
+              type="text"
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Employment Type</span>
+            <select
+              name="employmentType"
+              value={form.employmentType}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+            >
+              {EMPLOYMENT_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type.replace("_", " ")}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Salary (₹)</span>
+            <input
+              type="number"
+              name="salary"
+              value={form.salary}
+              onChange={handleChange}
+              min="0"
+              step="5000"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Industry</span>
+            <input
+              type="text"
+              name="industry"
+              value={form.industry}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Skills Required</span>
+            <input
+              type="text"
+              value={skillInput}
+              onChange={(e) => setSkillInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addSkill();
+                }
+              }}
+              placeholder="Type and press Enter"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+            />
+            <SkillChips skills={form.skillsRequired} onRemove={removeSkill} />
+          </label>
+
+          {error && <p className="text-red-600">{error}</p>}
+
+          <button
+            type="submit"
+            className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
+          >
+            Post Job
+          </button>
+        </form>
+      </main>
+    </div>
+  );
+}
+
+export default PostJob;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\pages\employer\ViewApplications.jsx =====
+
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { getJobApplications, updateApplicationStatus } from "../../api/applicationApi";
+import ApplicationTable from "../../components/ApplicationTable";
+
+function ViewApplications() {
+  const { jobId } = useParams();
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchApplications() {
+      try {
+        const token = localStorage.getItem("token");
+        const { data } = await getJobApplications(jobId, token);
+        setApplications(data);
+      } catch (error) {
+        console.error("Failed to fetch applications", error);
+      }
+      setLoading(false);
+    }
+    fetchApplications();
+  }, [jobId]);
+
+  async function handleStatusUpdate(applicationId, newStatus) {
+    try {
+      const token = localStorage.getItem("token");
+      await updateApplicationStatus(applicationId, { status: newStatus }, token);
+      setApplications((prev) =>
+        prev.map((app) =>
+          app.id === applicationId ? { ...app, status: newStatus } : app
+        )
+      );
+    } catch (error) {
+      alert("Failed to update application status");
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <main className="flex-1 p-6 max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6">Applications for Job #{jobId}</h1>
+        {loading ? (
+          <p className="text-gray-600">Loading applications...</p>
+        ) : applications.length === 0 ? (
+          <p className="text-gray-700">No applications for this job yet.</p>
+        ) : (
+          <ApplicationTable
+            applications={applications}
+            isEmployer={true}
+            onStatusUpdate={handleStatusUpdate}
+          />
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default ViewApplications;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\pages\jobseeker\Applications.jsx =====
+
+import React, { useEffect, useState, useContext } from "react";
+import { getMyApplications } from "../../api/applicationApi";
+import ApplicationTable from "../../components/ApplicationTable";
+import { AuthContext } from "../../context/AuthContext";
+import Sidebar from "../../components/Sidebar";
+
+function Applications() {
+  const { user } = useContext(AuthContext);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchApplications() {
+      try {
+        const token = localStorage.getItem("token");
+        const { data } = await getMyApplications(token);
+        setApplications(data);
+      } catch (error) {
+        console.error("Failed to fetch my applications", error);
+      }
+      setLoading(false);
+    }
+    fetchApplications();
+  }, [user]);
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar role="JOB_SEEKER" />
+      <main className="flex-1 p-6 max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6">My Applications</h1>
+        {loading ? (
+          <p className="text-gray-600">Loading your applications...</p>
+        ) : applications.length === 0 ? (
+          <p className="text-gray-700">You have not applied to any jobs yet.</p>
+        ) : (
+          <ApplicationTable applications={applications} isEmployer={false} />
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default Applications;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\pages\jobseeker\JobDetails.jsx =====
+
+import React, { useEffect, useState, useContext } from "react";
+import { useParams } from "react-router-dom";
+import { getJobDetails } from "../../api/jobApi";
+import { applyToJob } from "../../api/applicationApi";
+import { AuthContext } from "../../context/AuthContext";
+
+function JobDetails() {
+  const { id } = useParams();
+  const { user } = useContext(AuthContext);
+  const [job, setJob] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [applicationStatus, setApplicationStatus] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function fetchJob() {
+      try {
+        const token = localStorage.getItem("token");
+        const { data } = await getJobDetails(id, token);
+        setJob(data);
+      } catch {
+        setError("Failed to load job details");
+      }
+      setLoading(false);
+    }
+    fetchJob();
+  }, [id]);
+
+  async function handleApply() {
+    setError("");
+    try {
+      const token = localStorage.getItem("token");
+      await applyToJob(id, {}, token); // Assuming no extra payload needed
+      setApplicationStatus("Applied");
+      alert("Application submitted successfully");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to apply");
+    }
+  }
+
+  if (loading)
+    return <p className="text-center text-gray-600 mt-16">Loading job details...</p>;
+  if (!job)
+    return <p className="text-center text-red-600 mt-16">Job not found.</p>;
+
+  return (
+    <section className="max-w-4xl mx-auto p-6 bg-white rounded shadow mt-10">
+      <h1 className="text-3xl font-bold mb-4">{job.title}</h1>
+      <p className="mb-1">
+        <strong>Company:</strong> {job.employer?.companyName}
+      </p>
+      <p className="mb-1">
+        <strong>Location:</strong> {job.location}
+      </p>
+      <p className="mb-1">
+        <strong>Employment Type:</strong> {job.employmentType.replaceAll("_", " ")}
+      </p>
+      <p className="mb-4">
+        <strong>Salary:</strong> ₹{job.salary}
+      </p>
+      <div className="mb-4">
+        <strong>Description:</strong>
+        <p className="mt-1">{job.description}</p>
+      </div>
+      <div className="mb-6">
+        <strong>Skills Required:</strong>
+        <div className="flex flex-wrap gap-2 mt-1">
+          {job.skillsRequired?.map((s, i) => (
+            <span
+              key={i}
+              className="bg-gray-200 rounded-full px-3 py-1 text-xs"
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+      </div>
+      {applicationStatus !== "Applied" ? (
+        <button
+          onClick={handleApply}
+          disabled={!user || user.role !== "JOB_SEEKER"}
+          className={`px-6 py-2 rounded font-semibold text-white transition ${
+            !user || user.role !== "JOB_SEEKER"
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-indigo-600 hover:bg-indigo-700"
+          }`}
+        >
+          Apply
+        </button>
+      ) : (
+        <p className="text-green-600 font-semibold">You have applied to this job.</p>
+      )}
+      {error && <p className="text-red-600 mt-4">{error}</p>}
+    </section>
+  );
+}
+
+export default JobDetails;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\pages\jobseeker\JobSeekerDashboard.jsx =====
+
+import React, { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import { getJobs } from "../../api/jobApi";
+import JobCard from "../../components/JobCard";
+import Sidebar from "../../components/Sidebar";
+
+function JobSeekerDashboard() {
+  const { user } = useContext(AuthContext);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchJobs() {
+      try {
+        const token = localStorage.getItem("token");
+        // You can extend this with filters like skills, location, etc.
+        const { data } = await getJobs({}, token);
+        setJobs(data);
+      } catch (error) {
+        console.error("Failed to fetch jobs", error);
+      }
+      setLoading(false);
+    }
+    fetchJobs();
+  }, []);
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar role="JOB_SEEKER" />
+      <main className="flex-1 p-6 max-w-5xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6">Job Seeker Dashboard</h1>
+        {loading ? (
+          <p className="text-gray-600">Loading available jobs...</p>
+        ) : jobs.length === 0 ? (
+          <p className="text-gray-700">No jobs available right now.</p>
+        ) : (
+          <div className="space-y-4">
+            {jobs.map((job) => (
+              <JobCard key={job.id} job={job} isEmployer={false} />
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default JobSeekerDashboard;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\pages\jobseeker\Profile.jsx =====
+
+import React, { useState, useContext, useEffect } from "react";
+import { getProfile, updateProfile, uploadResume } from "../../api/userApi";
+import { AuthContext } from "../../context/AuthContext";
+import Sidebar from "../../components/Sidebar";
+import FileUpload from "../../components/FileUpload";
+import SkillChips from "../../components/SkillChips";
+
+function Profile() {
+  const { user, updateUser } = useContext(AuthContext);
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    skills: [],
+    education: "",
+    workExperience: "",
+    coCurricularDetails: "",
+  });
+
+  const [resumeFile, setResumeFile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const token = localStorage.getItem("token");
+        const { data } = await getProfile(token);
+        setForm({
+          name: data.name,
+          email: data.email,
+          phone: data.phone || "",
+          address: data.address || "",
+          skills: data.skills || [],
+          education: data.education || "",
+          workExperience: data.workExperience || "",
+          coCurricularDetails: data.coCurricularDetails || "",
+        });
+      } catch (err) {
+        setError("Failed to load profile");
+      }
+      setLoading(false);
+    }
+    loadProfile();
+  }, []);
+
+  function handleChange(e) {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  }
+
+  function addSkill(skill) {
+    if (skill && !form.skills.includes(skill)) {
+      setForm({ ...form, skills: [...form.skills, skill] });
+    }
+  }
+
+  function removeSkill(skill) {
+    setForm({ ...form, skills: form.skills.filter((s) => s !== skill) });
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    try {
+      const token = localStorage.getItem("token");
+      await updateProfile(form, token);
+      alert("Profile updated successfully");
+      updateUser({ ...user, ...form }); // update context
+    } catch {
+      setError("Failed to update profile");
+    }
+  }
+
+  async function handleResumeUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      const token = localStorage.getItem("token");
+      await uploadResume(file, token);
+      alert("Resume uploaded successfully");
+    } catch {
+      setError("Failed to upload resume");
+    }
+    setUploading(false);
+  }
+
+  if (loading)
+    return (
+      <p className="text-center text-gray-600 mt-16">Loading profile...</p>
+    );
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar role="JOB_SEEKER" />
+      <main className="flex-1 p-6 max-w-3xl mx-auto bg-white rounded shadow">
+        <h1 className="text-3xl font-bold mb-6">My Profile</h1>
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Name</span>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Email (readonly)</span>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              readOnly
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 cursor-not-allowed"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Phone</span>
+            <input
+              type="tel"
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Address</span>
+            <input
+              type="text"
+              name="address"
+              value={form.address}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Skills</span>
+            <input
+              type="text"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addSkill(e.target.value.trim());
+                  e.target.value = "";
+                }
+              }}
+              placeholder="Type a skill and press Enter"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+            />
+            <SkillChips skills={form.skills} onRemove={removeSkill} />
+          </label>
+
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Education</span>
+            <textarea
+              name="education"
+              value={form.education}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              rows={3}
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Work Experience</span>
+            <textarea
+              name="workExperience"
+              value={form.workExperience}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              rows={3}
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-gray-700 font-semibold">Co-Curricular Details</span>
+            <textarea
+              name="coCurricularDetails"
+              value={form.coCurricularDetails}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              rows={3}
+            />
+          </label>
+
+          <FileUpload
+            label="Upload Resume (PDF, DOC)"
+            onChange={handleResumeUpload}
+            accept=".pdf,.doc,.docx"
+          />
+
+          {uploading && (
+            <p className="text-indigo-600 font-semibold">Uploading resume...</p>
+          )}
+
+          {error && <p className="text-red-600 mt-2">{error}</p>}
+
+          <button
+            type="submit"
+            className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
+          >
+            Update Profile
+          </button>
+        </form>
+      </main>
+    </div>
+  );
+}
+
+export default Profile;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\routes\ProtectedRoute.jsx =====
+
+import React, { useContext } from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+
+function ProtectedRoute({ allowedRoles }) {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) {
+    // Centered loading message with subtle text styling
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600 text-lg">Loading...</p>
+      </div>
+    );
+  }
+
+  // For testing, if user is mocked (not null), allow access without redirect
+  if (!user) {
+    // If not logged in, redirect to login page
+    return <Navigate to="/auth/login" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // If logged in but role unauthorized, show Unauthorized page
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  // Authorized: render child routes
+  return <Outlet />;
+}
+
+export default ProtectedRoute;
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\styles\colors.css =====
+
+/* ===== COLORS.CSS ===== */
+/* Define all brand colors as CSS variables so you can reuse them in components */
+
+:root {
+  /* Brand Palette */
+  --color-primary: #007bff;
+  --color-primary-dark: #0056b3;
+  --color-secondary: #6c757d;
+  --color-accent: #00b894;
+
+  /* Neutral Shades */
+  --color-white: #ffffff;
+  --color-light: #f8f9fa;
+  --color-gray: #dee2e6;
+  --color-dark: #343a40;
+  --color-black: #000000;
+
+  /* Alerts */
+  --color-success: #28a745;
+  --color-error: #dc3545;
+  --color-warning: #ffc107;
+  --color-info: #17a2b8;
+
+  /* Shadows */
+  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-heavy: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+/* Common Utility Classes */
+.text-primary {
+  color: var(--color-primary);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.text-accent {
+  color: var(--color-accent);
+}
+
+.bg-light {
+  background-color: var(--color-light);
+}
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\styles\layout.css =====
+
+/* ===== LAYOUTS.CSS ===== */
+/* Handles structure, spacing, containers, and responsiveness */
+
+/* General container layout */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+}
+
+/* Flex utilities */
+.flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Card layout */
+.card {
+  background: var(--color-white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-light);
+  padding: 1.5rem;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Navbar + Sidebar */
+.navbar {
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-light);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: var(--color-white);
+  border-right: 1px solid var(--color-gray);
+  height: 100vh;
+  padding: 1rem;
+  position: fixed;
+}
+
+.main-content {
+  margin-left: 260px;
+  padding: 2rem;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+  .main-content {
+    margin-left: 0;
+  }
+}
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\styles\typography.css =====
+
+/* ===== TYPOGRAPHY.CSS ===== */
+/* Fonts, text sizes, weights, and line-heights */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  color: var(--color-dark);
+  line-height: 1.6;
+  background-color: var(--color-light);
+  margin: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  color: var(--color-dark);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+p {
+  margin-bottom: 1rem;
+  color: var(--color-secondary);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+}
+
+/* Buttons */
+button {
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  transition: all 0.2s ease-in-out;
+}
+
+button.primary {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+button.primary:hover {
+  background-color: var(--color-primary-dark);
+}
+
+button.secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-white);
+}
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\utils\authUtils.js =====
+
+// Key used for storing token in browser storage
+const TOKEN_KEY = "token";
+
+// Save JWT token securely in localStorage
+export function setToken(token) {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+// Retrieve JWT token from storage
+export function getToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+// Remove JWT token from storage (logout)
+export function removeToken() {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+// Decode JWT payload (without verifying signature)
+export function decodeToken(token) {
+  if (!token) return null;
+  try {
+    const base64Payload = token.split(".")[1];
+    const payload = atob(base64Payload);
+    return JSON.parse(payload);
+  } catch {
+    return null;
+  }
+}
+
+// Check if token is expired (checks 'exp' claim in seconds)
+export function isTokenExpired(token) {
+  const decoded = decodeToken(token);
+  if (!decoded || !decoded.exp) {
+    return true;
+  }
+  const now = Date.now() / 1000;
+  return decoded.exp < now;
+}
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\utils\constants.js =====
+
+// Define API base URL and enums
+export const API_BASE_URL = 'http://localhost:8080/api'; // Update as needed for backend
+
+export const ROLES = {
+  JOB_SEEKER: 'JOB_SEEKER',
+  EMPLOYER: 'EMPLOYER'
+};
+
+export const EMPLOYMENT_TYPES = [
+  'FULL_TIME',
+  'PART_TIME',
+  'CONTRACT'
+];
+
+export const APPLICATION_STATUSES = [
+  'APPLIED',
+  'REVIEWED',
+  'REJECTED',
+  'HIRED'
+];
+
+
+# ===== C:\Users\rajadharshini.p\IdeaProjects\CareerCrafter-Full-Stack-JobPortal\CareerCrafter-frontend\src\utils\dateUtils.js =====
+
+// Format ISO date string to a readable date + time string
+export function formatDateTime(isoString) {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// Format ISO date string to a readable date string only
+export function formatDate(isoString) {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}

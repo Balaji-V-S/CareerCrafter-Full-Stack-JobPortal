@@ -1,70 +1,29 @@
-import React, { useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
-import NotificationDropdown from "./NotificationDropdown";
-import { ROLES } from "../utils/constants";
-import logo from "../assets/logo.jpg"; // Adjust path as needed
+import React from "react";
+import { Link } from "react-router-dom";
+import logo from "../assets/logo.jpg";
 
-function Header() {
-  const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
-
-  function handleLogout() {
-    logout();
-    navigate("/auth/login");
-  }
-
+const Header = () => {
   return (
-    <header className="flex items-center justify-between p-4 bg-white shadow sticky top-0 z-50">
-      <img src={logo} alt="CareerCrafter" className="h-8" />
-      <nav className="flex space-x-4 text-gray-700">
-        <Link to="/" className="hover:text-indigo-600">
-          Home
+    <header className="bg-white shadow-md py-4">
+      <div className="container mx-auto flex items-center justify-between px-4">
+        <Link to="/" className="flex items-center space-x-3">
+          <img src={logo} alt="CareerCrafter Logo" className="h-10 w-10 object-contain" />
+          <span className="text-xl font-bold text-blue-600">CareerCrafter</span>
         </Link>
-        {user?.role === ROLES.EMPLOYER && (
-          <>
-            <Link to="/employer/dashboard" className="hover:text-indigo-600">
-              Dashboard
-            </Link>
-            <Link to="/employer/joblistings" className="hover:text-indigo-600">
-              My Jobs
-            </Link>
-            <Link to="/employer/postjob" className="hover:text-indigo-600">
-              Post Job
-            </Link>
-          </>
-        )}
-        {user?.role === ROLES.JOB_SEEKER && (
-          <>
-            <Link to="/jobseeker/dashboard" className="hover:text-indigo-600">
-              Dashboard
-            </Link>
-            <Link to="/jobseeker/applications" className="hover:text-indigo-600">
-              My Applications
-            </Link>
-          </>
-        )}
-      </nav>
-      <div className="flex items-center space-x-4">
-        {user && <NotificationDropdown />}
-        {user ? (
-          <button
-            onClick={handleLogout}
-            className="bg-indigo-600 text-white px-4 py-1 rounded hover:bg-indigo-700"
-          >
-            Logout
-          </button>
-        ) : (
-          <Link
-            to="/auth/login"
-            className="text-indigo-600 hover:underline font-semibold"
-          >
-            Login
+        <nav className="space-x-6 text-gray-700 font-semibold">
+          <Link to="/jobs" className="hover:text-blue-600 transition">
+            Jobs
           </Link>
-        )}
+          <Link to="/employer/dashboard" className="hover:text-blue-600 transition">
+            Employer
+          </Link>
+          <Link to="/jobseeker/dashboard" className="hover:text-blue-600 transition">
+            Profile
+          </Link>
+        </nav>
       </div>
     </header>
   );
-}
+};
 
 export default Header;

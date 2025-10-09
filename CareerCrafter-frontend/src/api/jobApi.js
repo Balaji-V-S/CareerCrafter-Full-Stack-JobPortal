@@ -1,38 +1,32 @@
-import axios from 'axios';
-import { API_BASE_URL } from '../utils/constants';
+// src/api/jobApi.js
+import axiosInstance from "./axiosInstance";
 
-// Get all job listings with optional filters
-export async function getJobs(filters = {}, token) {
-  return axios.get(`${API_BASE_URL}/jobs`, {
-    params: filters,
-    headers: { Authorization: `Bearer ${token}` },
-  });
-}
+// Search jobs with optional filters
+export const fetchJobs = async (queryParams) => {
+  const response = await axiosInstance.get("/job-postings/search", { params: queryParams });
+  return response.data;
+};
 
-// Get single job listing by ID
-export async function getJobDetails(id, token) {
-  return axios.get(`${API_BASE_URL}/jobs/${id}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-}
+// Fetch job by ID (matches backend)
+export const fetchJobById = async (jobId) => {
+  const response = await axiosInstance.get(`/job-postings/${jobId}`);
+  return response.data;
+};
 
-// Create new job (employer only)
-export async function createJob(payload, token) {
-  return axios.post(`${API_BASE_URL}/jobs`, payload, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-}
+// Post new job (match backend path '/add')
+export const postJob = async (jobData) => {
+  const response = await axiosInstance.post("/job-postings/add", jobData);
+  return response.data;
+};
 
-// Update job (employer only)
-export async function updateJob(id, payload, token) {
-  return axios.put(`${API_BASE_URL}/jobs/${id}`, payload, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-}
+// Update job by ID (match backend path '/update/:id')
+export const updateJob = async (jobId, jobData) => {
+  const response = await axiosInstance.put(`/job-postings/update/${jobId}`, jobData);
+  return response.data;
+};
 
-// Delete job
-export async function deleteJob(id, token) {
-  return axios.delete(`${API_BASE_URL}/jobs/${id}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-}
+// Delete job (match backend path '/remove/:id')
+export const deleteJob = async (jobId) => {
+  const response = await axiosInstance.delete(`/job-postings/remove/${jobId}`);
+  return response.data;
+};

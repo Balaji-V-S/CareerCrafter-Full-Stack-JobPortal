@@ -1,98 +1,63 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
+import { fetchJobById } from "../../api/jobApi";
+import { applyJob } from "../../api/applicationApi";
 import { useParams } from "react-router-dom";
-import { getJobDetails } from "../../api/jobApi";
-import { applyToJob } from "../../api/applicationApi";
-import { AuthContext } from "../../context/AuthContext";
 
-function JobDetails() {
+const JobDetails = () => {
   const { id } = useParams();
-  const { user } = useContext(AuthContext);
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [applicationStatus, setApplicationStatus] = useState(null);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
+  const [applying, setApplying] = useState(false);
+  const [applied, setApplied] = useState(false);
 
   useEffect(() => {
-    async function fetchJob() {
+    const loadJob = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const { data } = await getJobDetails(id, token);
+        const data = await fetchJobById(id);
         setJob(data);
       } catch {
-        setError("Failed to load job details");
+        setError("Failed to load job details.");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }
-    fetchJob();
+    };
+    loadJob();
   }, [id]);
 
-  async function handleApply() {
-    setError("");
+  const handleApply = async () => {
+    setApplying(true);
     try {
-      const token = localStorage.getItem("token");
-      await applyToJob(id, {}, token); // Assuming no extra payload needed
-      setApplicationStatus("Applied");
-      alert("Application submitted successfully");
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to apply");
+      await applyJob({ jobId: id });
+      setApplied(true);
+    } catch {
+      alert("Failed to apply for job.");
+    } finally {
+      setApplying(false);
     }
-  }
+  };
 
-  if (loading)
-    return <p className="text-center text-gray-600 mt-16">Loading job details...</p>;
-  if (!job)
-    return <p className="text-center text-red-600 mt-16">Job not found.</p>;
+  if (loading) return <div className="text-center mt-10">Loading job details...</div>;
+  if (error) return <div className="text-center mt-10 text-red-600">{error}</div>;
+
+  if (!job) return <div className="text-center mt-10">Job not found.</div>;
 
   return (
-    <section className="max-w-4xl mx-auto p-6 bg-white rounded shadow mt-10">
-      <h1 className="text-3xl font-bold mb-4">{job.title}</h1>
-      <p className="mb-1">
-        <strong>Company:</strong> {job.employer?.companyName}
-      </p>
-      <p className="mb-1">
-        <strong>Location:</strong> {job.location}
-      </p>
-      <p className="mb-1">
-        <strong>Employment Type:</strong> {job.employmentType.replaceAll("_", " ")}
-      </p>
-      <p className="mb-4">
-        <strong>Salary:</strong> ₹{job.salary}
-      </p>
-      <div className="mb-4">
-        <strong>Description:</strong>
-        <p className="mt-1">{job.description}</p>
-      </div>
-      <div className="mb-6">
-        <strong>Skills Required:</strong>
-        <div className="flex flex-wrap gap-2 mt-1">
-          {job.skillsRequired?.map((s, i) => (
-            <span
-              key={i}
-              className="bg-gray-200 rounded-full px-3 py-1 text-xs"
-            >
-              {s}
-            </span>
-          ))}
-        </div>
-      </div>
-      {applicationStatus !== "Applied" ? (
-        <button
-          onClick={handleApply}
-          disabled={!user || user.role !== "JOB_SEEKER"}
-          className={`px-6 py-2 rounded font-semibold text-white transition ${
-            !user || user.role !== "JOB_SEEKER"
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-indigo-600 hover:bg-indigo-700"
-          }`}
-        >
-          Apply
-        </button>
-      ) : (
-        <p className="text-green-600 font-semibold">You have applied to this job.</p>
-      )}
-      {error && <p className="text-red-600 mt-4">{error}</p>}
-    </section>
+    <div className="p-6 max-w-xl mx-auto">
+      <h1 className="text-3xl font-semibold text-blue-600 mb-4">{job.title}</h1>
+      <p className="mb-2 text-gray-700">{job.description}</p>
+      <p className="mb-2 text-gray-700"><strong>Qualifications:</strong> {job.qualifications}</p>
+      <p className="mb-2 text-gray-700"><strong>Location:</strong> {job.location}</p>
+      <p className="mb-6 text-gray-700"><strong>Salary:</strong> {job.salary}</p>
+      <button
+        onClick={handleApply}
+        disabled={applying || applied}
+        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded transition disabled:opacity-50"
+      >
+        {applied ? "Applied" : applying ? "Applying..." : "Apply"}
+      </button>
+    </div>
   );
-}
+};
 
 export default JobDetails;

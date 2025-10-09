@@ -1,20 +1,21 @@
-// Define API base URL and enums
-export const API_BASE_URL = 'http://localhost:8080/api'; // Update as needed for backend
+// src/utils/constants.js
 
+// Example user roles
 export const ROLES = {
-  JOB_SEEKER: 'JOB_SEEKER',
-  EMPLOYER: 'EMPLOYER'
+  EMPLOYER: "employer",
+  JOBSEEKER: "jobseeker",
+  ADMIN: "admin",
 };
 
-export const EMPLOYMENT_TYPES = [
-  'FULL_TIME',
-  'PART_TIME',
-  'CONTRACT'
-];
+// API related constants
+export const API = {
+  BASE_URL: import.meta.env.VITE_BACKEND_BASE_URL || "http://localhost:8080/api",
+};
 
-export const APPLICATION_STATUSES = [
-  'APPLIED',
-  'REVIEWED',
-  'REJECTED',
-  'HIRED'
-];
+// Other constants
+export const APP_NAME = "CareerCrafter";
+
+// Local storage keys
+export const STORAGE_KEYS = {
+  JWT_TOKEN: "jwtToken",
+};

@@ -1,43 +1,55 @@
 import React, { createContext, useState, useEffect } from "react";
+import * as jwtDecode from "jwt-decode";
+
 
 export const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  // Mock user object for frontend testing
-  const [user, setUser] = useState({
-    id: 1,
-    name: "Test User",
-    role: "JOB_SEEKER", // Change to "JOB_SEEKER" to test that role
-  });
+const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [jwtToken, setJwtToken] = useState(localStorage.getItem("jwtToken"));
 
-  const [loading, setLoading] = useState(false);
+  // Decode token and set user info
+  const loadUserFromToken = (token) => {
+    if (!token) {
+      setUser(null);
+      return;
+    }
+    try {
+      const decoded = jwtDecode(token);
+      setUser({ id: decoded.sub, email: decoded.email, roles: decoded.roles });
+    } catch (err) {
+      setUser(null);
+    }
+  };
 
-  // Remove backend API calls and token handling for now.
-  // You can optionally keep loading state for async simulation.
+  useEffect(() => {
+    loadUserFromToken(jwtToken);
+  }, [jwtToken]);
 
-  // Mock login function (always succeeds)
-  async function login(credentials) {
-    setUser({
-      id: 1,
-      name: "Test User",
-      role: credentials.role || "EMPLOYER",
-    });
-    return true;
-  }
+  const login = (token) => {
+    localStorage.setItem("jwtToken", token);
+    setJwtToken(token);
+  };
 
-  // Mock logout function (clears user)
-  async function logout() {
+  const logout = () => {
+    localStorage.removeItem("jwtToken");
+    setJwtToken(null);
     setUser(null);
-  }
+  };
 
-  // Update user locally
-  function updateUser(updatedUser) {
-    setUser(updatedUser);
-  }
+  const isAuthenticated = !!user;
+
+  const hasRole = (role) => {
+    return user?.roles?.includes(role);
+  };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{ user, login, logout, isAuthenticated, hasRole, jwtToken }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
+
+export default AuthProvider;

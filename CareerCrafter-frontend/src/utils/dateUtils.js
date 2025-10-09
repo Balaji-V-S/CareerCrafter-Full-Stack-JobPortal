@@ -1,23 +1,26 @@
-// Format ISO date string to a readable date + time string
-export function formatDateTime(isoString) {
+// src/utils/dateUtils.js
+
+// Format date string or Date object to locale date string (e.g. "MM/DD/YYYY")
+export const formatToLocaleDate = (date) => {
+  if (!date) return "";
+  const d = date instanceof Date ? date : new Date(date);
+  return d.toLocaleDateString();
+};
+
+// Format ISO date string to human readable format with time, e.g. "Oct 8, 2025, 3:00 PM"
+export const formatDateTime = (isoString) => {
   if (!isoString) return "";
-  const date = new Date(isoString);
-  return date.toLocaleString(undefined, {
+  const d = new Date(isoString);
+  return d.toLocaleString(undefined, {
     year: "numeric",
     month: "short",
     day: "numeric",
-    hour: "2-digit",
+    hour: "numeric",
     minute: "2-digit",
   });
-}
+};
 
-// Format ISO date string to a readable date string only
-export function formatDate(isoString) {
-  if (!isoString) return "";
-  const date = new Date(isoString);
-  return date.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
+// Returns current date/time in ISO string
+export const getCurrentIsoDateTime = () => {
+  return new Date().toISOString();
+};

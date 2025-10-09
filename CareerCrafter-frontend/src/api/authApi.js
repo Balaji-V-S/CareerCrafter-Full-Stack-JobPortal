@@ -1,26 +1,17 @@
-import axios from 'axios';
-import { API_BASE_URL } from '../utils/constants';
+// src/api/authApi.js
+import axiosInstance from "./axiosInstance";
 
-// Register new user (job seeker or employer)
-export async function register(payload) {
-  return axios.post(`${API_BASE_URL}/auth/register`, payload);
-}
+export const login = async (credentials) => {
+  const response = await axiosInstance.post("/auth/login", credentials);
+  return response.data;
+};
 
-// Login user
-export async function login(payload) {
-  return axios.post(`${API_BASE_URL}/auth/login`, payload);
-}
+export const register = async (userData) => {
+  const response = await axiosInstance.post("/auth/register", userData);
+  return response.data;
+};
 
-// Change password
-export async function changePassword(token, payload) {
-  return axios.post(`${API_BASE_URL}/auth/change-password`, payload, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-}
-
-// Logout (optional: invalidate token server-side)
-export async function logout(token) {
-  return axios.post(`${API_BASE_URL}/auth/logout`, {}, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-}
+export const changePassword = async (passwordData) => {
+  const response = await axiosInstance.post("/auth/change-password", passwordData);
+  return response.data;
+};

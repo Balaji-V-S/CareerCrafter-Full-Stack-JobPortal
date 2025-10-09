@@ -1,80 +1,90 @@
 import React, { useState, useContext } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { login } from "../../api/authApi";
 import { AuthContext } from "../../context/AuthContext";
 
-function LoginPage() {
-  const { login } = useContext(AuthContext);
+const LoginPage = () => {
+  const { login: loginContext } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("JOB_SEEKER");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    const success = await login({ email, password, role });
-    if (success) {
-      navigate(role === "EMPLOYER" ? "/employer/dashboard" : "/jobseeker/dashboard");
-    } else {
-      setError("Login failed. Please check your credentials.");
+    setError(null);
+    setLoading(true);
+    try {
+      const data = await login({ email, password });
+      loginContext(data.token);
+      setLoading(false);
+      navigate("/"); // Redirect to home or dashboard
+    } catch (err) {
+      setLoading(false);
+      setError(err.response?.data?.message || "Login failed");
     }
-  }
+  };
 
   return (
-    <section className="max-w-md mx-auto mt-12 p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-semibold mb-6 text-center">Login</h2>
-      <form onSubmit={handleSubmit} noValidate className="space-y-4">
-        <label className="block">
-          <span className="text-gray-700">Email</span>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
-          />
-        </label>
-        <label className="block">
-          <span className="text-gray-700">Password</span>
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
-          />
-        </label>
-        <label className="block">
-          <span className="text-gray-700">Role</span>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-600"
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="max-w-md w-full bg-white p-8 rounded shadow-md">
+        <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">
+          Login to CareerCrafter
+        </h2>
+
+        {error && (
+          <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="email" className="block mb-1 font-semibold">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block mb-1 font-semibold">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition disabled:opacity-50"
           >
-            <option value="JOB_SEEKER">Job Seeker</option>
-            <option value="EMPLOYER">Employer</option>
-          </select>
-        </label>
-        {error && <p className="text-red-600 mt-1 text-sm">{error}</p>}
-        <button
-          type="submit"
-          className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
-        >
-          Login
-        </button>
-      </form>
-      <p className="mt-4 text-center text-gray-600">
-        Don't have an account?{" "}
-        <Link to="/auth/register" className="text-indigo-600 hover:underline">
-          Register here
-        </Link>
-      </p>
-    </section>
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+
+        <p className="mt-4 text-center text-gray-600">
+          Don't have an account?{" "}
+          <a href="/register" className="text-blue-600 hover:underline">
+            Register here
+          </a>
+        </p>
+      </div>
+    </div>
   );
-}
+};
 
 export default LoginPage;

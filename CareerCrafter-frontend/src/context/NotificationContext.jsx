@@ -1,49 +1,45 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
-import { getNotifications, markNotificationRead } from "../api/notificationApi";
-import { AuthContext } from "./AuthContext";
+import React, { createContext, useState, useEffect } from "react";
+import { fetchNotifications } from "../api/notificationApi";
 
 export const NotificationContext = createContext();
 
-export const NotificationProvider = ({ children }) => {
-  const { user } = useContext(AuthContext);
+const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  // Fetch notifications from API
+  const loadNotifications = async () => {
+    try {
+      const data = await fetchNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error("Failed to load notifications:", error);
+    }
+  };
 
   useEffect(() => {
-    if (!user) {
-      setNotifications([]);
-      setLoading(false);
-      return;
-    }
-    const fetchNotifications = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const { data } = await getNotifications(token);
-        setNotifications(data);
-      } catch (error) {
-        console.error("NotificationContext: Failed to load notifications", error);
-      }
-      setLoading(false);
-    };
-    fetchNotifications();
-  }, [user]);
+    loadNotifications();
+    // Optionally, reload notifications on an interval
+    const interval = setInterval(loadNotifications, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
-  // Mark notification read and update state optimistically
-  async function markAsRead(notificationId) {
-    try {
-      const token = localStorage.getItem("token");
-      await markNotificationRead(notificationId, token);
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n))
-      );
-    } catch (error) {
-      console.error("Failed to mark notification read", error);
-    }
-  }
+  // Mark notification as read locally
+  const markAsRead = (id) => {
+    setNotifications((prev) =>
+      prev.map((notif) =>
+        notif.id === id ? { ...notif, read: true } : notif
+      )
+    );
+    // Could also trigger API call here to mark read in backend
+  };
 
   return (
-    <NotificationContext.Provider value={{ notifications, loading, markAsRead }}>
+    <NotificationContext.Provider
+      value={{ notifications, markAsRead, reload: loadNotifications }}
+    >
       {children}
     </NotificationContext.Provider>
   );
 };
+
+export default NotificationProvider;

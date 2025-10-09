@@ -1,48 +1,52 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { getJobSeekerProfileById } from "../../api/jobSeekerApi";
 import { AuthContext } from "../../context/AuthContext";
-import { getJobs } from "../../api/jobApi";
-import JobCard from "../../components/JobCard";
-import Sidebar from "../../components/Sidebar";
 
-function JobSeekerDashboard() {
-  const { user } = useContext(AuthContext);
-  const [jobs, setJobs] = useState([]);
+const JobSeekerDashboard = () => {
+  const { user } = useContext(AuthContext); // Extract logged-in user info with ID
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchJobs() {
-      try {
-        const token = localStorage.getItem("token");
-        // You can extend this with filters like skills, location, etc.
-        const { data } = await getJobs({}, token);
-        setJobs(data);
-      } catch (error) {
-        console.error("Failed to fetch jobs", error);
+    const loadProfile = async () => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-    }
-    fetchJobs();
-  }, []);
+      try {
+        const data = await getJobSeekerProfileById(user.id); // Pass user id here
+        setProfile(data);
+      } catch (error) {
+        console.error("Failed to load job seeker profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfile();
+  }, [user?.id]);
+
+  if (loading) {
+    return <div className="text-center mt-10">Loading profile...</div>;
+  }
+
+  if (!profile) {
+    return <div className="text-center mt-10">No profile found. Please create your profile.</div>;
+  }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar role="JOB_SEEKER" />
-      <main className="flex-1 p-6 max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Job Seeker Dashboard</h1>
-        {loading ? (
-          <p className="text-gray-600">Loading available jobs...</p>
-        ) : jobs.length === 0 ? (
-          <p className="text-gray-700">No jobs available right now.</p>
-        ) : (
-          <div className="space-y-4">
-            {jobs.map((job) => (
-              <JobCard key={job.id} job={job} isEmployer={false} />
-            ))}
-          </div>
-        )}
-      </main>
+    <div className="p-6 max-w-xl mx-auto">
+      <h1 className="text-3xl font-semibold text-blue-600 mb-4">
+        Welcome, {profile.name}
+      </h1>
+      <p className="mb-2 text-gray-700">Email: {profile.email}</p>
+      <p className="mb-2 text-gray-700">Education: {profile.education || "N/A"}</p>
+      <p className="mb-2 text-gray-700">Work Experience: {profile.workExperience || "N/A"}</p>
+      <p className="mb-2 text-gray-700">Skills: {(profile.skills || []).join(", ") || "N/A"}</p>
+      <p className="text-gray-700">
+        Use the menu to search jobs, apply, and manage your applications.
+      </p>
     </div>
   );
-}
+};
 
 export default JobSeekerDashboard;

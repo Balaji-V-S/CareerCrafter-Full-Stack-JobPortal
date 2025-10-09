@@ -1,39 +1,28 @@
-// Key used for storing token in browser storage
-const TOKEN_KEY = "token";
+// src/utils/authUtils.js
 
-// Save JWT token securely in localStorage
-export function setToken(token) {
-  localStorage.setItem(TOKEN_KEY, token);
-}
-
-// Retrieve JWT token from storage
-export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
-}
-
-// Remove JWT token from storage (logout)
-export function removeToken() {
-  localStorage.removeItem(TOKEN_KEY);
-}
-
-// Decode JWT payload (without verifying signature)
-export function decodeToken(token) {
+// Decode JWT token payload safely
+export const decodeJwt = (token) => {
   if (!token) return null;
   try {
-    const base64Payload = token.split(".")[1];
-    const payload = atob(base64Payload);
-    return JSON.parse(payload);
-  } catch {
+    const base64Payload = token.split('.')[1];
+    const payload = JSON.parse(atob(base64Payload));
+    return payload;
+  } catch (error) {
+    console.error("Failed to decode JWT:", error);
     return null;
   }
-}
+};
 
-// Check if token is expired (checks 'exp' claim in seconds)
-export function isTokenExpired(token) {
-  const decoded = decodeToken(token);
-  if (!decoded || !decoded.exp) {
-    return true;
-  }
-  const now = Date.now() / 1000;
-  return decoded.exp < now;
-}
+// Check if a JWT token is expired (assuming exp in seconds)
+export const isTokenExpired = (token) => {
+  const payload = decodeJwt(token);
+  if (!payload || !payload.exp) return true;
+  const expiration = payload.exp * 1000; // convert to ms
+  return Date.now() > expiration;
+};
+
+// Extract user roles from JWT payload
+export const getUserRolesFromToken = (token) => {
+  const payload = decodeJwt(token);
+  return payload?.roles || [];
+};

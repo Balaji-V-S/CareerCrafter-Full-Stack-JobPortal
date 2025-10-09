@@ -1,54 +1,26 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
-function Sidebar({ role }) {
+const Sidebar = ({ menuItems }) => {
+  const location = useLocation();
+
   return (
-    <aside className="w-48 bg-white p-4 border-r border-gray-200 h-screen sticky top-0 flex flex-col space-y-3">
-      {role === "EMPLOYER" ? (
-        <>
+    <aside className="w-64 bg-gray-100 min-h-screen p-5 shadow-md">
+      <nav className="flex flex-col space-y-3">
+        {menuItems.map(({ label, to }) => (
           <Link
-            to="/employer/dashboard"
-            className="block py-2 px-3 rounded hover:bg-indigo-600 hover:text-white transition"
+            key={to}
+            to={to}
+            className={`px-4 py-2 rounded hover:bg-blue-600 hover:text-white transition ${
+              location.pathname === to ? "bg-blue-600 text-white" : "text-gray-700"
+            }`}
           >
-            Dashboard
+            {label}
           </Link>
-          <Link
-            to="/employer/joblistings"
-            className="block py-2 px-3 rounded hover:bg-indigo-600 hover:text-white transition"
-          >
-            Jobs
-          </Link>
-          <Link
-            to="/employer/postjob"
-            className="block py-2 px-3 rounded hover:bg-indigo-600 hover:text-white transition"
-          >
-            Post Job
-          </Link>
-        </>
-      ) : (
-        <>
-          <Link
-            to="/jobseeker/dashboard"
-            className="block py-2 px-3 rounded hover:bg-indigo-600 hover:text-white transition"
-          >
-            Dashboard
-          </Link>
-          <Link
-            to="/jobseeker/applications"
-            className="block py-2 px-3 rounded hover:bg-indigo-600 hover:text-white transition"
-          >
-            Applications
-          </Link>
-          <Link
-            to="/jobseeker/profile"
-            className="block py-2 px-3 rounded hover:bg-indigo-600 hover:text-white transition"
-          >
-            Profile
-          </Link>
-        </>
-      )}
+        ))}
+      </nav>
     </aside>
   );
-}
+};
 
 export default Sidebar;
